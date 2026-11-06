@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - New Blood Request - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html" class="active">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">➕ Submit Hospital Blood Requisition</h1>
+        <p class="page-subtitle">Create a new urgent or scheduled blood demand in MySQL Workbench table <code>blood_requests</code>.</p>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card" style="max-width: 720px; margin: 0 auto 2rem auto;">
+      <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1.5rem; color:#1e293b; border-bottom:1px solid #f1f5f9; padding-bottom:0.75rem;">
+        Patient &amp; Hospital Request Details
+      </h2>
+
+      <form id="insertReqForm" onsubmit="event.preventDefault(); submitRequest();">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="request_id">Request ID <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="number" 
+              id="request_id" 
+              class="form-control" 
+              placeholder="e.g. 506, 601" 
+              required
+            >
+            <small style="color:var(--text-muted); font-size:0.75rem;">Unique primary key identifier</small>
+          </div>
+
+          <div class="form-group">
+            <label for="patient_name">Patient Full Name <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="text" 
+              id="patient_name" 
+              class="form-control" 
+              placeholder="e.g. Arjun Kapoor" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="hospital_name">Hospital / Clinic Name <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="text" 
+              id="hospital_name" 
+              class="form-control" 
+              placeholder="e.g. AIIMS Trauma Center" 
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="blood_group">Blood Group Needed <span style="color:#ef4444;">*</span></label>
+            <select id="blood_group" class="form-control" required>
+              <option value="">-- Select Blood Group --</option>
+              <option value="A+">A Positive (A+)</option>
+              <option value="A-">A Negative (A-)</option>
+              <option value="B+">B Positive (B+)</option>
+              <option value="B-">B Negative (B-)</option>
+              <option value="AB+">AB Positive (AB+)</option>
+              <option value="AB-">AB Negative (AB-)</option>
+              <option value="O+">O Positive (O+)</option>
+              <option value="O-">O Negative (O-)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="units_requested">Units Required (Bags) <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="number" 
+              id="units_requested" 
+              class="form-control" 
+              min="1" 
+              max="20" 
+              placeholder="e.g. 1, 2, 4" 
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="urgency">Urgency Level <span style="color:#ef4444;">*</span></label>
+            <select id="urgency" class="form-control" required>
+              <option value="Normal">Normal (Scheduled procedure)</option>
+              <option value="Urgent">Urgent (Within 12 hours)</option>
+              <option value="Critical">Critical (Immediate / Emergency)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="request_date">Requisition Date <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="date" 
+              id="request_date" 
+              class="form-control" 
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="contact_person">Attending Doctor / Coordinator <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="text" 
+              id="contact_person" 
+              class="form-control" 
+              placeholder="e.g. Dr. K. Sharma (98765-11223)" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="btn-group" style="margin-top:1.5rem; justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="location.href='requests.html'">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" id="saveReqBtn">
+            ðŸ’¾ Submit Requisition to Database
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    // Pre-fill today's date
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('request_date').value = new Date().toISOString().split('T')[0];
+    });
+
+    async function submitRequest() {
+      const btn = document.getElementById('saveReqBtn');
+      btn.disabled = true;
+      btn.innerText = 'Submitting to MySQL...';
+
+      const reqData = {
+        request_id: Number(document.getElementById('request_id').value),
+        patient_name: document.getElementById('patient_name').value.trim(),
+        hospital_name: document.getElementById('hospital_name').value.trim(),
+        blood_group: document.getElementById('blood_group').value,
+        units_requested: Number(document.getElementById('units_requested').value),
+        urgency: document.getElementById('urgency').value,
+        status: 'Pending',
+        request_date: document.getElementById('request_date').value,
+        contact_person: document.getElementById('contact_person').value.trim()
+      };
+
+      const res = await BloodBankAPI.insertRequest(reqData);
+      btn.disabled = false;
+      btn.innerText = 'ðŸ’¾ Submit Requisition to Database';
+
+      if (res.success) {
+        showToast('âœ“ Blood request registered! Synced with MySQL Workbench.', 'success', () => {
+          location.href = 'requests.html';
+        });
+      } else {
+        showToast(res.message || 'Error submitting request', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - List All Donors - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html" class="active">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">👥 Blood Donors Directory</h1>
+        <p class="page-subtitle">View, search, filter, and manage all registered volunteer blood donors.</p>
+      </div>
+      <div>
+        <a href="insert-donor.html" class="btn btn-primary">
+          ➕ Register New Donor
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Toolbar Controls -->
+      <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="form-control" 
+            placeholder="Search by name, city, or contact..." 
+            style="width:260px;" 
+            oninput="filterDonors()"
+          >
+          <button class="btn btn-secondary" onclick="loadDonors()">
+            🔍„ Refresh
+          </button>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <label style="font-size:0.875rem; font-weight:600; color:var(--text-muted);">Blood Group:</label>
+          <select id="bgFilter" class="form-control" style="width:auto; padding:0.5rem 0.75rem;" onchange="filterDonors()">
+            <option value="ALL">All Groups</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+
+          <label style="font-size:0.875rem; font-weight:600; color:var(--text-muted);">Status:</label>
+          <select id="statusFilter" class="form-control" style="width:auto; padding:0.5rem 0.75rem;" onchange="filterDonors()">
+            <option value="ALL">All Statuses</option>
+            <option value="Eligible">Eligible Only</option>
+            <option value="Recently Donated">Recently Donated</option>
+            <option value="Deferred">Deferred</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Donors Table -->
+      <div class="table-responsive">
+        <table class="styled-table" id="donorTable">
+          <thead>
+            <tr>
+              <th>Donor ID</th>
+              <th>Donor Name</th>
+              <th>Blood Group</th>
+              <th>Age</th>
+              <th>Gender</th>
+              <th>Contact</th>
+              <th>City</th>
+              <th>Last Donation</th>
+              <th>Eligibility</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="donorTableBody">
+            <tr>
+              <td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading donors...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; flex-wrap:wrap; gap:1rem;">
+        <span id="donorCountLabel" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">Showing 0 donors</span>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="location.href='index.html'">
+            â† Back to Dashboard
+          </button>
+          <a href="search-donor.html" class="btn btn-secondary">
+            🔍 Search by ID
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    let donorsCache = [];
+
+    async function loadDonors() {
+      const tbody = document.getElementById('donorTableBody');
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem;">Fetching from database...</td></tr>`;
+
+      try {
+        donorsCache = await BloodBankAPI.getAllDonors();
+        filterDonors();
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#ef4444; padding:2rem;">Failed to load donors. Make sure server is running!</td></tr>`;
+      }
+    }
+
+    function filterDonors() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const bg = document.getElementById('bgFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      const filtered = donorsCache.filter(d => {
+        const matchesQuery = !q || 
+          String(d.donor_id).includes(q) || 
+          d.donor_name.toLowerCase().includes(q) || 
+          d.city.toLowerCase().includes(q) || 
+          d.contact.toLowerCase().includes(q);
+
+        const matchesBG = bg === 'ALL' || d.blood_group === bg;
+        const matchesStatus = status === 'ALL' || d.status === status;
+
+        return matchesQuery && matchesBG && matchesStatus;
+      });
+
+      renderDonorsTable(filtered);
+    }
+
+    function renderDonorsTable(list) {
+      const tbody = document.getElementById('donorTableBody');
+      const countLabel = document.getElementById('donorCountLabel');
+      countLabel.innerText = `Showing ${list.length} of ${donorsCache.length} registered donors`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted);">No matching donors found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(d => `
+        <tr>
+          <td><strong>#${d.donor_id}</strong></td>
+          <td style="font-weight:600;">${d.donor_name}</td>
+          <td>${renderBloodGroupBadge(d.blood_group)}</td>
+          <td>${d.age} yrs</td>
+          <td>${d.gender}</td>
+          <td>${d.contact}</td>
+          <td>${d.city}</td>
+          <td>${d.last_donation_date ? d.last_donation_date.split('T')[0] : '<span style="color:#94a3b8;">None</span>'}</td>
+          <td>${renderStatusBadge(d.status)}</td>
+          <td style="text-align:right;">
+            <div class="btn-group" style="justify-content:flex-end;">
+              <a href="update-donor.html?id=${d.donor_id}" class="btn btn-secondary btn-sm" title="Edit Donor">
+                âœï¸ Edit
+              </a>
+              <button class="btn btn-danger btn-sm" onclick="quickDeleteDonor(${d.donor_id}, '${d.donor_name.replace(/'/g, "\\'")}')">
+                🗑️ Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function quickDeleteDonor(id, name) {
+      if (!confirm(`Are you sure you want to permanently delete donor #${id} (${name})? This change will reflect in MySQL Workbench.`)) {
+        return;
+      }
+
+      const res = await BloodBankAPI.deleteDonor(id);
+      if (res.success) {
+        showToast(`Donor #${id} deleted successfully`, 'success');
+        loadDonors();
+      } else {
+        showToast(res.message || 'Failed to delete donor', 'error');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadDonors);
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,25 @@
+{
+  "name": "blood-bank-management",
+  "version": "1.0.0",
+  "description": "Blood Bank Management System connected to MySQL Workbench",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-api.js"
+  },
+  "keywords": [
+    "blood-bank",
+    "mysql",
+    "workbench",
+    "express",
+    "management-system"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "mysql2": "^3.24.6"
+  }
+}

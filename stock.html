@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - Blood Stock Inventory - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html" class="active">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">🩸 Blood Stock Inventory Management</h1>
+        <p class="page-subtitle">Monitor and update blood reserves in MySQL Workbench table <code>blood_stock</code>.</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="loadStock()">
+          🔍„ Refresh Reserves
+        </button>
+      </div>
+    </div>
+
+    <!-- 8 Blood Group Cards with Quick + / - Adjusters -->
+    <div class="stock-grid" id="stockCardsContainer">
+      <div style="grid-column:1/-1; text-align:center; padding:2rem; color:var(--text-muted);">
+        Loading stock levels...
+      </div>
+    </div>
+
+    <!-- Stock Inventory Table -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <h2 style="font-size:1.15rem; font-weight:700; color:#1e293b;">
+            Detailed Blood Stock Ledger (Table: <code>blood_stock</code>)
+          </h2>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            Thresholds: &ge; 15 Units = <strong>Sufficient</strong> &bull; 6&ndash;14 Units = <strong>Moderate</strong> &bull; &le; 5 Units = <strong>Critical</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="styled-table" id="stockTable">
+          <thead>
+            <tr>
+              <th>Stock ID</th>
+              <th>Blood Group</th>
+              <th>Units Available</th>
+              <th>Inventory Status</th>
+              <th>Last Synced / Updated</th>
+              <th style="text-align:right;">Quick Actions</th>
+            </tr>
+          </thead>
+          <tbody id="stockTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading ledger...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="btn-group" style="margin-top:1.5rem;">
+        <button class="btn btn-secondary" onclick="location.href='index.html'">
+          â† Back to Dashboard
+        </button>
+        <a href="requests.html" class="btn btn-primary">
+          Check Pending Requests â†’
+        </a>
+      </div>
+    </div>
+
+    <!-- Set Units Modal / Dialog Box -->
+    <div id="setUnitsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; align-items:center; justify-content:center; padding:1rem;">
+      <div class="card" style="max-width:440px; width:100%; margin:0; box-shadow:var(--shadow-lg);">
+        <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:0.5rem; color:#0f172a;" id="modalGroupTitle">
+          Update Units for Blood Group
+        </h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">
+          Enter the new absolute units count for this blood group in MySQL Workbench.
+        </p>
+
+        <form id="setUnitsForm" onsubmit="event.preventDefault(); submitUnitsUpdate();">
+          <input type="hidden" id="modalBloodGroup">
+          <div class="form-group">
+            <label for="modalUnitsInput">Units Available (Bags) <span style="color:#ef4444;">*</span></label>
+            <input type="number" id="modalUnitsInput" class="form-control" min="0" required>
+          </div>
+
+          <div class="btn-group" style="justify-content:flex-end; margin-top:1.25rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" id="modalSaveBtn">
+              Save to Database
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    let stockCache = [];
+
+    async function loadStock() {
+      const cards = document.getElementById('stockCardsContainer');
+      const tbody = document.getElementById('stockTableBody');
+
+      try {
+        stockCache = await BloodBankAPI.getAllStock();
+        renderStock();
+      } catch (e) {
+        cards.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#ef4444; padding:2rem;">Failed to load stock data.</div>`;
+      }
+    }
+
+    function renderStock() {
+      const cards = document.getElementById('stockCardsContainer');
+      const tbody = document.getElementById('stockTableBody');
+
+      if (!stockCache || stockCache.length === 0) {
+        cards.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:2rem; color:var(--text-muted);">No stock items recorded.</div>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem;">No stock records found.</td></tr>`;
+        return;
+      }
+
+      // Render 8 Top Cards
+      cards.innerHTML = stockCache.map(s => {
+        const statusClass = (s.status || '').toLowerCase().includes('critical') ? 'critical' :
+                            (s.status || '').toLowerCase().includes('moderate') ? 'moderate' : 'sufficient';
+        return `
+          <div class="stock-card ${statusClass}">
+            <div class="stock-bg-name">${s.blood_group}</div>
+            <div class="stock-units">${s.units}</div>
+            <div class="stock-unit-label">Units in Reserve</div>
+            <div style="margin:0.5rem 0;">${renderStatusBadge(s.status)}</div>
+            <div style="display:flex; gap:0.25rem; justify-content:center; margin-top:0.75rem;">
+              <button class="btn btn-secondary btn-sm" onclick="adjustUnits('${s.blood_group}', -1)" title="Deduct 1 Unit">-1</button>
+              <button class="btn btn-primary btn-sm" onclick="adjustUnits('${s.blood_group}', 1)" title="Add 1 Unit">+1</button>
+              <button class="btn btn-secondary btn-sm" onclick="openModal('${s.blood_group}', ${s.units})" title="Set Exact Units">âœï¸</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render Ledger Table
+      tbody.innerHTML = stockCache.map(s => `
+        <tr>
+          <td><strong>#${s.stock_id}</strong></td>
+          <td>${renderBloodGroupBadge(s.blood_group)}</td>
+          <td><strong style="font-size:1.05rem;">${s.units}</strong> Units</td>
+          <td>${renderStatusBadge(s.status)}</td>
+          <td style="color:var(--text-muted); font-size:0.82rem;">${s.last_updated ? s.last_updated.replace('T', ' ').substring(0, 19) : 'Just now'}</td>
+          <td style="text-align:right;">
+            <div class="btn-group" style="justify-content:flex-end;">
+              <button class="btn btn-secondary btn-sm" onclick="adjustUnits('${s.blood_group}', -1)">- 1 Unit</button>
+              <button class="btn btn-secondary btn-sm" onclick="adjustUnits('${s.blood_group}', 1)">+ 1 Unit</button>
+              <button class="btn btn-primary btn-sm" onclick="openModal('${s.blood_group}', ${s.units})">Set Units</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function adjustUnits(group, delta) {
+      const res = await BloodBankAPI.adjustStockUnits(group, delta);
+      if (res.success) {
+        showToast(res.message || `Updated ${group} stock`, 'success');
+        loadStock();
+      } else {
+        showToast(res.message || 'Error adjusting stock', 'error');
+      }
+    }
+
+    function openModal(group, currentUnits) {
+      document.getElementById('modalBloodGroup').value = group;
+      document.getElementById('modalGroupTitle').innerText = `Update Units for Blood Group: ${group}`;
+      document.getElementById('modalUnitsInput').value = currentUnits;
+      document.getElementById('setUnitsModal').style.display = 'flex';
+      document.getElementById('modalUnitsInput').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('setUnitsModal').style.display = 'none';
+    }
+
+    async function submitUnitsUpdate() {
+      const group = document.getElementById('modalBloodGroup').value;
+      const units = document.getElementById('modalUnitsInput').value;
+
+      const btn = document.getElementById('modalSaveBtn');
+      btn.disabled = true;
+      btn.innerText = 'Saving...';
+
+      const res = await BloodBankAPI.updateStockUnits(group, units);
+      btn.disabled = false;
+      btn.innerText = 'Save to Database';
+
+      if (res.success) {
+        showToast(res.message || `Stock for ${group} updated successfully`, 'success');
+        closeModal();
+        loadStock();
+      } else {
+        showToast(res.message || 'Error updating stock units', 'error');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadStock);
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,255 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - Hospital Blood Requests - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html" class="active">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">📑 Hospital Blood Requisitions</h1>
+        <p class="page-subtitle">Track, approve, fulfill, and monitor patient blood requests in MySQL Workbench table <code>blood_requests</code>.</p>
+      </div>
+      <div>
+        <a href="insert-request.html" class="btn btn-primary">
+          ➕ Submit New Blood Request
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Toolbar Controls -->
+      <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="form-control" 
+            placeholder="Search patient, hospital, or doctor..." 
+            style="width:260px;" 
+            oninput="filterRequests()"
+          >
+          <button class="btn btn-secondary" onclick="loadRequests()">
+            🔍„ Refresh
+          </button>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <label style="font-size:0.875rem; font-weight:600; color:var(--text-muted);">Urgency Filter:</label>
+          <select id="urgencyFilter" class="form-control" style="width:auto; padding:0.5rem 0.75rem;" onchange="filterRequests()">
+            <option value="ALL">All Urgencies</option>
+            <option value="Critical">Critical Only</option>
+            <option value="Urgent">Urgent Only</option>
+            <option value="Normal">Normal</option>
+          </select>
+
+          <label style="font-size:0.875rem; font-weight:600; color:var(--text-muted);">Status Filter:</label>
+          <select id="statusFilter" class="form-control" style="width:auto; padding:0.5rem 0.75rem;" onchange="filterRequests()">
+            <option value="ALL">All Statuses</option>
+            <option value="Pending">Pending Only</option>
+            <option value="Approved">Approved Only</option>
+            <option value="Fulfilled">Fulfilled Only</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Requests Table -->
+      <div class="table-responsive">
+        <table class="styled-table" id="requestTable">
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>Patient Name</th>
+              <th>Hospital / Clinic</th>
+              <th>Blood Group</th>
+              <th>Units Req</th>
+              <th>Urgency</th>
+              <th>Status</th>
+              <th>Request Date</th>
+              <th>Contact Person</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="requestTableBody">
+            <tr>
+              <td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading requests...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; flex-wrap:wrap; gap:1rem;">
+        <span id="requestCountLabel" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">Showing 0 requests</span>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="location.href='index.html'">
+            â† Back to Dashboard
+          </button>
+          <a href="stock.html" class="btn btn-secondary">
+            🩸 Verify Blood Reserves
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    let requestsCache = [];
+
+    async function loadRequests() {
+      const tbody = document.getElementById('requestTableBody');
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem;">Fetching from database...</td></tr>`;
+
+      try {
+        requestsCache = await BloodBankAPI.getAllRequests();
+        filterRequests();
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#ef4444; padding:2rem;">Failed to load requests. Make sure server is running!</td></tr>`;
+      }
+    }
+
+    function filterRequests() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const urgency = document.getElementById('urgencyFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      const filtered = requestsCache.filter(r => {
+        const matchesQuery = !q || 
+          String(r.request_id).includes(q) || 
+          r.patient_name.toLowerCase().includes(q) || 
+          r.hospital_name.toLowerCase().includes(q) || 
+          (r.contact_person && r.contact_person.toLowerCase().includes(q));
+
+        const matchesUrgency = urgency === 'ALL' || r.urgency === urgency;
+        const matchesStatus = status === 'ALL' || r.status === status;
+
+        return matchesQuery && matchesUrgency && matchesStatus;
+      });
+
+      renderRequestsTable(filtered);
+    }
+
+    function renderRequestsTable(list) {
+      const tbody = document.getElementById('requestTableBody');
+      const countLabel = document.getElementById('requestCountLabel');
+      countLabel.innerText = `Showing ${list.length} of ${requestsCache.length} hospital requisitions`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:2rem; color:var(--text-muted);">No matching blood requests found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => `
+        <tr>
+          <td><strong>#${r.request_id}</strong></td>
+          <td style="font-weight:600;">${r.patient_name}</td>
+          <td>${r.hospital_name}</td>
+          <td>${renderBloodGroupBadge(r.blood_group)}</td>
+          <td><strong>${r.units_requested}</strong> Units</td>
+          <td>${renderUrgencyBadge(r.urgency)}</td>
+          <td>${renderStatusBadge(r.status)}</td>
+          <td>${r.request_date ? r.request_date.split('T')[0] : 'N/A'}</td>
+          <td style="font-size:0.83rem; color:#475569;">${r.contact_person || 'N/A'}</td>
+          <td style="text-align:right;">
+            <div class="btn-group" style="justify-content:flex-end;">
+              ${r.status === 'Pending' ? `
+                <button class="btn btn-secondary btn-sm" onclick="changeStatus(${r.request_id}, 'Approved')">
+                  âœ“ Approve
+                </button>
+              ` : ''}
+
+              ${r.status !== 'Fulfilled' ? `
+                <button class="btn btn-success btn-sm" onclick="fulfillRequest(${r.request_id}, '${r.blood_group}', ${r.units_requested})">
+                  🩸 Fulfill
+                </button>
+              ` : ''}
+
+              ${r.status !== 'Rejected' && r.status !== 'Fulfilled' ? `
+                <button class="btn btn-secondary btn-sm" onclick="changeStatus(${r.request_id}, 'Rejected')">
+                  âœ• Reject
+                </button>
+              ` : ''}
+
+              <button class="btn btn-danger btn-sm" onclick="deleteRequest(${r.request_id})" title="Delete Request">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function changeStatus(id, newStatus) {
+      const res = await BloodBankAPI.updateRequestStatus(id, newStatus);
+      if (res.success) {
+        showToast(res.message || `Request #${id} marked as ${newStatus}`, 'success');
+        loadRequests();
+      } else {
+        showToast(res.message || 'Error updating status', 'error');
+      }
+    }
+
+    async function fulfillRequest(id, bloodGroup, units) {
+      if (!confirm(`Confirm fulfillment of Request #${id}? This will automatically verify and deduct ${units} units of ${bloodGroup} from table blood_stock in MySQL Workbench.`)) {
+        return;
+      }
+
+      const res = await BloodBankAPI.updateRequestStatus(id, 'Fulfilled');
+      if (res.success) {
+        showToast(`Request #${id} fulfilled and ${units} units deducted from stock!`, 'success');
+        loadRequests();
+      } else {
+        showToast(res.message || 'Error fulfilling request', 'error');
+      }
+    }
+
+    async function deleteRequest(id) {
+      if (!confirm(`Are you sure you want to delete blood request #${id} permanently from MySQL Workbench?`)) {
+        return;
+      }
+
+      const res = await BloodBankAPI.deleteRequest(id);
+      if (res.success) {
+        showToast(`Request #${id} deleted successfully`, 'success');
+        loadRequests();
+      } else {
+        showToast(res.message || 'Error deleting request', 'error');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadRequests);
+  </script>
+</body>
+</html>
+

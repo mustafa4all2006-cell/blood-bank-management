@@ -1,0 +1,312 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - Blood Bank Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html" class="active">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Page Header & MySQL Workbench Status -->
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">🩸 Blood Bank Operations Center</h1>
+        <p class="page-subtitle">Real-time donor tracking, blood inventory reserves, and emergency hospital requisitions.</p>
+      </div>
+      <div id="dbStatusBadge" class="db-status-pill">
+        <span class="db-status-dot"></span>
+        <span id="dbStatusText">Checking MySQL Workbench connection...</span>
+      </div>
+    </div>
+
+    <!-- Live Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value" id="statDonors">-</div>
+          <div class="stat-label">Registered Donors</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background:#fee2e2; color:#dc2626;">👥</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value" id="statUnits" style="color:#047857;">-</div>
+          <div class="stat-label">Total Units in Reserve</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background:#ecfdf5; color:#10b981;">🩸</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value" id="statCritical" style="color:#b91c1c;">-</div>
+          <div class="stat-label">Critical Shortage Types</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background:#fef2f2; color:#ef4444;">⚠️</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value" id="statPending" style="color:#b45309;">-</div>
+          <div class="stat-label">Pending Requests</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background:#fffbeb; color:#f59e0b;">📋</div>
+      </div>
+    </div>
+
+    <!-- Live Blood Stock Overview Grid -->
+    <div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="font-size:1.15rem; font-weight:700; color:#1e293b;">
+        🩸 Live Blood Inventory Reserves (8 Groups)
+      </h2>
+      <a href="stock.html" style="font-size:0.85rem; font-weight:600; color:var(--primary); text-decoration:none;">
+        Manage Stock &rarr;
+      </a>
+    </div>
+
+    <div class="stock-grid" id="stockGridContainer">
+      <!-- Loaded dynamically -->
+      <div style="grid-column:1/-1; text-align:center; padding:1.5rem; color:var(--text-muted);">
+        Loading blood stock levels...
+      </div>
+    </div>
+
+    <!-- Quick Actions Cards Grid -->
+    <h2 style="font-size:1.15rem; font-weight:700; color:#1e293b; margin-bottom:1rem;">
+      ⚡ System Operations & Modules
+    </h2>
+    <div class="actions-grid">
+      <a href="donors.html" class="action-card">
+        <div class="action-card-icon" style="background:#fee2e2; color:#dc2626;">📋</div>
+        <div class="action-card-title">1. List All Donors</div>
+        <div class="action-card-desc">Browse registered blood donors, filter by blood group & eligibility, view donation histories.</div>
+      </a>
+
+      <a href="search-donor.html" class="action-card">
+        <div class="action-card-icon" style="background:#eef2ff; color:#4f46e5;">🔍</div>
+        <div class="action-card-title">2. Search Donor Record</div>
+        <div class="action-card-desc">Instant lookup by Donor ID or Donor Name with detailed profile contact verification.</div>
+      </a>
+
+      <a href="insert-donor.html" class="action-card">
+        <div class="action-card-icon" style="background:#f0fdf4; color:#16a34a;">➕</div>
+        <div class="action-card-title">3. Register New Donor</div>
+        <div class="action-card-desc">Add a new volunteer donor with blood type, age, city, contact info, and medical eligibility.</div>
+      </a>
+
+      <a href="update-donor.html" class="action-card">
+        <div class="action-card-icon" style="background:#fff7ed; color:#ea580c;">âœï¸</div>
+        <div class="action-card-title">4. Update Donor Info</div>
+        <div class="action-card-desc">Fetch existing donor record to update contact number, recent donation date, or medical status.</div>
+      </a>
+
+      <a href="stock.html" class="action-card">
+        <div class="action-card-icon" style="background:#fdf2f8; color:#db2777;">💉</div>
+        <div class="action-card-title">5. Blood Stock Inventory</div>
+        <div class="action-card-desc">Track available units per blood type, update reserve counts, and monitor critical shortages.</div>
+      </a>
+
+      <a href="requests.html" class="action-card">
+        <div class="action-card-icon" style="background:#f0f9ff; color:#0284c7;">ðŸ¥</div>
+        <div class="action-card-title">6. Hospital Requisitions</div>
+        <div class="action-card-desc">Review emergency blood requests, approve allocations, and fulfill supplies with auto-deduction.</div>
+      </a>
+    </div>
+
+    <!-- Recent Donors Snapshot -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2 style="font-size:1.15rem; font-weight:700; color:#1e293b;">
+          👥 Active Blood Donors Snapshot
+        </h2>
+        <a href="donors.html" class="btn btn-secondary btn-sm">👥 Donors</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Donor ID</th>
+              <th>Full Name</th>
+              <th>Blood Group</th>
+              <th>Age / Gender</th>
+              <th>Contact</th>
+              <th>City</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recentDonorsBody">
+            <tr>
+              <td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-muted);">Loading donors...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recent Blood Requests Snapshot -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2 style="font-size:1.15rem; font-weight:700; color:#1e293b;">
+          📑 Emergency & Urgent Hospital Requests
+        </h2>
+        <a href="requests.html" class="btn btn-secondary btn-sm">View All Requests</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>Patient</th>
+              <th>Hospital</th>
+              <th>Blood Group</th>
+              <th>Units</th>
+              <th>Urgency</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recentRequestsBody">
+            <tr>
+              <td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-muted);">Loading requests...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    async function loadDashboard() {
+      // 1. Check DB Workbench connection
+      try {
+        const dbInfo = await BloodBankAPI.getDbStatus();
+        const badge = document.getElementById('dbStatusBadge');
+        const text = document.getElementById('dbStatusText');
+        if (dbInfo.useMySQL) {
+          badge.className = 'db-status-pill';
+          text.innerHTML = `ðŸŸ¢ Connected to MySQL Workbench (${dbInfo.database})`;
+        } else {
+          badge.className = 'db-status-pill offline';
+          text.innerHTML = `⚠️ Standalone Mode (Run start.bat to sync MySQL Workbench)`;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // 2. Fetch stats
+      try {
+        const stats = await BloodBankAPI.getStats();
+        if (stats) {
+          document.getElementById('statDonors').innerText = stats.totalDonors;
+          document.getElementById('statUnits').innerText = stats.totalStockUnits;
+          document.getElementById('statCritical').innerText = stats.criticalStockCount;
+          document.getElementById('statPending').innerText = stats.pendingRequests;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // 3. Fetch Stock
+      try {
+        const stock = await BloodBankAPI.getAllStock();
+        const stockContainer = document.getElementById('stockGridContainer');
+        if (stock && stock.length > 0) {
+          stockContainer.innerHTML = stock.map(s => {
+            const statusClass = (s.status || '').toLowerCase().includes('critical') ? 'critical' :
+                                (s.status || '').toLowerCase().includes('moderate') ? 'moderate' : 'sufficient';
+            return `
+              <div class="stock-card ${statusClass}">
+                <div class="stock-bg-name">${s.blood_group}</div>
+                <div class="stock-units">${s.units}</div>
+                <div class="stock-unit-label">Units Available</div>
+                <div style="margin-top:0.4rem;">${renderStatusBadge(s.status)}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // 4. Fetch Donors
+      try {
+        const donors = await BloodBankAPI.getAllDonors();
+        const donorsBody = document.getElementById('recentDonorsBody');
+        if (donors && donors.length > 0) {
+          donorsBody.innerHTML = donors.slice(0, 5).map(d => `
+            <tr>
+              <td><strong>#${d.donor_id}</strong></td>
+              <td>${d.donor_name}</td>
+              <td>${renderBloodGroupBadge(d.blood_group)}</td>
+              <td>${d.age} yrs (${d.gender})</td>
+              <td>${d.contact}</td>
+              <td>${d.city}</td>
+              <td>${renderStatusBadge(d.status)}</td>
+            </tr>
+          `).join('');
+        } else {
+          donorsBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem;">No donors found.</td></tr>`;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // 5. Fetch Requests
+      try {
+        const requests = await BloodBankAPI.getAllRequests();
+        const reqBody = document.getElementById('recentRequestsBody');
+        if (requests && requests.length > 0) {
+          reqBody.innerHTML = requests.slice(0, 5).map(r => `
+            <tr>
+              <td><strong>#${r.request_id}</strong></td>
+              <td>${r.patient_name}</td>
+              <td>${r.hospital_name}</td>
+              <td>${renderBloodGroupBadge(r.blood_group)}</td>
+              <td><strong>${r.units_requested}</strong> Units</td>
+              <td>${renderUrgencyBadge(r.urgency)}</td>
+              <td>${renderStatusBadge(r.status)}</td>
+            </tr>
+          `).join('');
+        } else {
+          reqBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem;">No requests found.</td></tr>`;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadDashboard);
+  </script>
+</body>
+</html>
+

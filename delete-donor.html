@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - Delete Donor - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">🗑️ Delete Blood Donor Record</h1>
+        <p class="page-subtitle">Safely remove an inactive or invalid donor record from MySQL Workbench table <code>donors</code>.</p>
+      </div>
+    </div>
+
+    <!-- Step 1: Search Donor to Delete -->
+    <div class="card" style="max-width: 680px; margin: 0 auto 2rem auto;">
+      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:1rem; color:#1e293b;">
+        Enter Donor ID to Review for Deletion
+      </h2>
+
+      <div class="search-bar-container" style="max-width:100%;">
+        <input 
+          type="number" 
+          id="delete_donor_id" 
+          class="form-control" 
+          placeholder="Enter Donor ID (e.g. 101, 102)"
+          onkeydown="if(event.key==='Enter') loadDonorForDelete();"
+        >
+        <button class="btn btn-danger" onclick="loadDonorForDelete()" id="fetchBtn">
+          🔍 Lookup Record
+        </button>
+      </div>
+
+      <!-- Preview Card & Confirmation -->
+      <div id="deletePreviewSection" style="display:none; margin-top:1.5rem; border-top:1px solid #f1f5f9; padding-top:1.5rem;">
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+          <div style="color:#b91c1c; font-weight:700; font-size:1rem; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+            ⚠️ Confirmation Required
+          </div>
+          <p style="color:#7f1d1d; font-size:0.88rem; line-height:1.45;">
+            Are you sure you want to permanently delete this donor? This action will remove the record immediately from your MySQL server and MySQL Workbench database.
+          </p>
+        </div>
+
+        <div class="detail-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;" id="previewIdLabel">Donor ID #--</span>
+              <h3 style="font-size:1.25rem; font-weight:800; color:#0f172a;" id="previewName">--</h3>
+            </div>
+            <div id="previewBadge"></div>
+          </div>
+
+          <div class="detail-grid">
+            <div>
+              <div class="detail-item-label">Age &amp; Gender</div>
+              <div class="detail-item-value" id="previewAgeGender">--</div>
+            </div>
+            <div>
+              <div class="detail-item-label">Contact</div>
+              <div class="detail-item-value" id="previewContact">--</div>
+            </div>
+            <div>
+              <div class="detail-item-label">City</div>
+              <div class="detail-item-value" id="previewCity">--</div>
+            </div>
+            <div>
+              <div class="detail-item-label">Eligibility</div>
+              <div class="detail-item-value" id="previewStatus">--</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group" style="margin-top:1.5rem; justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="location.href='donors.html'">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" onclick="confirmDelete()" id="confirmDeleteBtn">
+            🗑️ Yes, Delete Donor Permanently
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    let activeDonor = null;
+
+    async function loadDonorForDelete() {
+      const idInput = document.getElementById('delete_donor_id');
+      const id = idInput.value.trim();
+
+      if (!id) {
+        showToast('Please enter a Donor ID', 'error');
+        return;
+      }
+
+      const results = await BloodBankAPI.getDonorById(id);
+
+      if (!results || results.length === 0) {
+        showToast(`Donor with ID ${id} was not found`, 'error');
+        document.getElementById('deletePreviewSection').style.display = 'none';
+        return;
+      }
+
+      activeDonor = results[0];
+
+      document.getElementById('previewIdLabel').innerText = `Donor ID #${activeDonor.donor_id}`;
+      document.getElementById('previewName').innerText = activeDonor.donor_name;
+      document.getElementById('previewBadge').innerHTML = renderBloodGroupBadge(activeDonor.blood_group);
+      document.getElementById('previewAgeGender').innerText = `${activeDonor.age} yrs (${activeDonor.gender})`;
+      document.getElementById('previewContact').innerText = activeDonor.contact;
+      document.getElementById('previewCity').innerText = activeDonor.city;
+      document.getElementById('previewStatus').innerHTML = renderStatusBadge(activeDonor.status);
+
+      document.getElementById('deletePreviewSection').style.display = 'block';
+    }
+
+    async function confirmDelete() {
+      if (!activeDonor) return;
+
+      const btn = document.getElementById('confirmDeleteBtn');
+      btn.disabled = true;
+      btn.innerText = 'Deleting from MySQL...';
+
+      const res = await BloodBankAPI.deleteDonor(activeDonor.donor_id);
+      btn.disabled = false;
+      btn.innerText = '🗑️ Yes, Delete Donor Permanently';
+
+      if (res.success) {
+        showToast(`Donor #${activeDonor.donor_id} permanently removed`, 'success', () => {
+          location.href = 'donors.html';
+        });
+      } else {
+        showToast(res.message || 'Error deleting donor record', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - Search Donor - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">🔍 Search Required Donor</h1>
+        <p class="page-subtitle">Lookup volunteer donor details instantly using Donor ID or Name from MySQL Workbench.</p>
+      </div>
+    </div>
+
+    <!-- Search Box Card -->
+    <div class="card" style="max-width: 720px; margin: 0 auto 2rem auto;">
+      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:1rem; color:#1e293b;">
+        Search by ID or Name
+      </h2>
+
+      <div class="search-bar-container" style="max-width:100%;">
+        <input 
+          type="text" 
+          id="search_query" 
+          class="form-control" 
+          placeholder="Enter Donor ID (e.g. 101) or Name (e.g. Aarav, Priya)"
+          onkeydown="if(event.key==='Enter') searchDonor();"
+        >
+        <button class="btn btn-primary" onclick="searchDonor()" id="searchBtn">
+          🔍 Search
+        </button>
+      </div>
+
+      <!-- Result Container -->
+      <div id="resultsContainer" style="margin-top:1.5rem;">
+        <p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:1.5rem;">
+          Enter a donor ID or full/partial name above and click Search.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    async function searchDonor() {
+      const q = document.getElementById('search_query').value.trim();
+      const container = document.getElementById('resultsContainer');
+
+      if (!q) {
+        showToast('Please enter an ID or Name to search', 'error');
+        return;
+      }
+
+      container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-muted);">Searching MySQL database...</div>`;
+
+      const results = await BloodBankAPI.getDonorById(q);
+
+      if (!results || results.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:2rem; background:#f8fafc; border-radius:8px; border:1px dashed var(--surface-border);">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">🔍Ž</div>
+            <div style="font-weight:700; color:#334155; margin-bottom:0.25rem;">No Donor Records Found</div>
+            <p style="color:var(--text-muted); font-size:0.85rem;">No matching donors found in <code>blood_bank_db.donors</code> for "${q}".</p>
+            <div style="margin-top:1rem;">
+              <a href="insert-donor.html" class="btn btn-primary btn-sm">➕ Register This Donor</a>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = results.map(d => `
+        <div class="detail-card" style="margin-bottom:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; border-bottom:1px solid #f1f5f9; padding-bottom:1rem;">
+            <div>
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Donor ID #${d.donor_id}</span>
+              <h2 style="font-size:1.35rem; font-weight:800; color:#0f172a; margin-top:0.2rem;">${d.donor_name}</h2>
+            </div>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              ${renderBloodGroupBadge(d.blood_group)}
+              ${renderStatusBadge(d.status)}
+            </div>
+          </div>
+
+          <div class="detail-grid">
+            <div>
+              <div class="detail-item-label">Age &amp; Gender</div>
+              <div class="detail-item-value">${d.age} Years &bull; ${d.gender}</div>
+            </div>
+
+            <div>
+              <div class="detail-item-label">Contact Number</div>
+              <div class="detail-item-value">${d.contact}</div>
+            </div>
+
+            <div>
+              <div class="detail-item-label">City / Location</div>
+              <div class="detail-item-value">${d.city}</div>
+            </div>
+
+            <div>
+              <div class="detail-item-label">Last Donation Date</div>
+              <div class="detail-item-value">${d.last_donation_date ? d.last_donation_date.split('T')[0] : 'None (First Time)'}</div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem; border-top:1px solid #f1f5f9; padding-top:1rem;">
+            <a href="update-donor.html?id=${d.donor_id}" class="btn btn-secondary btn-sm">
+              âœï¸ Edit Details
+            </a>
+            <button class="btn btn-danger btn-sm" onclick="deleteFromSearch(${d.donor_id}, '${d.donor_name.replace(/'/g, "\\'")}')">
+              🗑️ Delete Record
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function deleteFromSearch(id, name) {
+      if (!confirm(`Delete donor #${id} (${name}) permanently from MySQL Workbench?`)) return;
+
+      const res = await BloodBankAPI.deleteDonor(id);
+      if (res.success) {
+        showToast(`Donor #${id} deleted successfully`, 'success');
+        searchDonor();
+      } else {
+        showToast(res.message || 'Error deleting donor', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
+

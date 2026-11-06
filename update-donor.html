@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - Update Donor - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">âœï¸ Update Donor Information</h1>
+        <p class="page-subtitle">Fetch an existing donor profile by ID, modify contact or eligibility, and save to MySQL Workbench.</p>
+      </div>
+    </div>
+
+    <!-- Step 1: Select Donor by ID -->
+    <div class="card" style="max-width: 720px; margin: 0 auto 2rem auto;">
+      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:1rem; color:#1e293b;">
+        Step 1: Enter Donor ID to Retrieve
+      </h2>
+
+      <div class="search-bar-container" style="max-width:100%;">
+        <input 
+          type="number" 
+          id="fetch_donor_id" 
+          class="form-control" 
+          placeholder="Enter Donor ID (e.g. 101, 102, 103)"
+          onkeydown="if(event.key==='Enter') loadDonorForUpdate();"
+        >
+        <button class="btn btn-primary" onclick="loadDonorForUpdate()" id="fetchBtn">
+          ðŸ“¥ Fetch Details
+        </button>
+      </div>
+
+      <!-- Step 2: Form to Modify (Hidden until loaded) -->
+      <div id="updateFormSection" style="display:none; margin-top:2rem; border-top:1px solid #f1f5f9; padding-top:1.5rem;">
+        <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:1.25rem; color:#1e293b;">
+          Step 2: Modify Donor Record
+        </h2>
+
+        <form id="updateDonorForm" onsubmit="event.preventDefault(); submitUpdate();">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="donor_id_display">Donor ID (Fixed Key)</label>
+              <input type="text" id="donor_id_display" class="form-control" readonly style="background:#f8fafc; font-weight:bold;">
+            </div>
+
+            <div class="form-group">
+              <label for="edit_donor_name">Full Name <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="edit_donor_name" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit_blood_group">Blood Group <span style="color:#ef4444;">*</span></label>
+              <select id="edit_blood_group" class="form-control" required>
+                <option value="A+">A Positive (A+)</option>
+                <option value="A-">A Negative (A-)</option>
+                <option value="B+">B Positive (B+)</option>
+                <option value="B-">B Negative (B-)</option>
+                <option value="AB+">AB Positive (AB+)</option>
+                <option value="AB-">AB Negative (AB-)</option>
+                <option value="O+">O Positive (O+)</option>
+                <option value="O-">O Negative (O-)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="edit_age">Age (Years) <span style="color:#ef4444;">*</span></label>
+              <input type="number" id="edit_age" class="form-control" min="18" max="65" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit_gender">Gender <span style="color:#ef4444;">*</span></label>
+              <select id="edit_gender" class="form-control" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="edit_contact">Contact Number <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="edit_contact" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit_city">City / Location <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="edit_city" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+              <label for="edit_last_donation_date">Last Donation Date</label>
+              <input type="date" id="edit_last_donation_date" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit_status">Eligibility Status <span style="color:#ef4444;">*</span></label>
+            <select id="edit_status" class="form-control" required>
+              <option value="Eligible">Eligible (Ready to Donate)</option>
+              <option value="Recently Donated">Recently Donated (Rest Period)</option>
+              <option value="Deferred">Deferred (Temporary Hold)</option>
+            </select>
+          </div>
+
+          <div class="btn-group" style="margin-top:1.5rem; justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+              Clear
+            </button>
+            <button type="submit" class="btn btn-primary" id="saveUpdateBtn">
+              ðŸ’¾ Update Donor Record
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    let currentDonorId = null;
+
+    async function loadDonorForUpdate() {
+      const idInput = document.getElementById('fetch_donor_id');
+      const id = idInput.value.trim();
+
+      if (!id) {
+        showToast('Please enter a Donor ID', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('fetchBtn');
+      btn.disabled = true;
+      btn.innerText = 'Fetching...';
+
+      const results = await BloodBankAPI.getDonorById(id);
+      btn.disabled = false;
+      btn.innerText = 'ðŸ“¥ Fetch Details';
+
+      if (!results || results.length === 0) {
+        showToast(`No donor found with ID ${id}`, 'error');
+        document.getElementById('updateFormSection').style.display = 'none';
+        return;
+      }
+
+      const d = results[0];
+      currentDonorId = d.donor_id;
+
+      document.getElementById('donor_id_display').value = `#${d.donor_id}`;
+      document.getElementById('edit_donor_name').value = d.donor_name;
+      document.getElementById('edit_blood_group').value = d.blood_group;
+      document.getElementById('edit_age').value = d.age;
+      document.getElementById('edit_gender').value = d.gender;
+      document.getElementById('edit_contact').value = d.contact;
+      document.getElementById('edit_city').value = d.city;
+      
+      if (d.last_donation_date) {
+        document.getElementById('edit_last_donation_date').value = d.last_donation_date.split('T')[0];
+      } else {
+        document.getElementById('edit_last_donation_date').value = '';
+      }
+      
+      document.getElementById('edit_status').value = d.status;
+
+      document.getElementById('updateFormSection').style.display = 'block';
+      showToast(`Donor #${d.donor_id} loaded successfully`, 'success');
+    }
+
+    async function submitUpdate() {
+      if (!currentDonorId) return;
+
+      const btn = document.getElementById('saveUpdateBtn');
+      btn.disabled = true;
+      btn.innerText = 'Saving changes...';
+
+      const updatedData = {
+        donor_name: document.getElementById('edit_donor_name').value.trim(),
+        blood_group: document.getElementById('edit_blood_group').value,
+        age: Number(document.getElementById('edit_age').value),
+        gender: document.getElementById('edit_gender').value,
+        contact: document.getElementById('edit_contact').value.trim(),
+        city: document.getElementById('edit_city').value.trim(),
+        last_donation_date: document.getElementById('edit_last_donation_date').value || null,
+        status: document.getElementById('edit_status').value
+      };
+
+      const res = await BloodBankAPI.updateDonor(currentDonorId, updatedData);
+      btn.disabled = false;
+      btn.innerText = 'ðŸ’¾ Update Donor Record';
+
+      if (res.success) {
+        showToast('âœ“ Donor updated successfully! Synced with MySQL Workbench.', 'success', () => {
+          location.href = 'donors.html';
+        });
+      } else {
+        showToast(res.message || 'Error updating donor record', 'error');
+      }
+    }
+
+    function resetForm() {
+      currentDonorId = null;
+      document.getElementById('fetch_donor_id').value = '';
+      document.getElementById('updateFormSection').style.display = 'none';
+    }
+
+    // Auto load if passed in URL query param ?id=101
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const idParam = urlParams.get('id');
+      if (idParam) {
+        document.getElementById('fetch_donor_id').value = idParam;
+        loadDonorForUpdate();
+      }
+    });
+  </script>
+</body>
+</html>
+

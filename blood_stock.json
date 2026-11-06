@@ -1,0 +1,58 @@
+[
+  {
+    "stock_id": 1,
+    "blood_group": "A+",
+    "units": 24,
+    "status": "Sufficient",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  },
+  {
+    "stock_id": 2,
+    "blood_group": "A-",
+    "units": 8,
+    "status": "Moderate",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  },
+  {
+    "stock_id": 3,
+    "blood_group": "B+",
+    "units": 30,
+    "status": "Sufficient",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  },
+  {
+    "stock_id": 4,
+    "blood_group": "B-",
+    "units": 5,
+    "status": "Critical",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  },
+  {
+    "stock_id": 5,
+    "blood_group": "AB+",
+    "units": 18,
+    "status": "Sufficient",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  },
+  {
+    "stock_id": 6,
+    "blood_group": "AB-",
+    "units": 3,
+    "status": "Critical",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  },
+  {
+    "stock_id": 7,
+    "blood_group": "O+",
+    "units": 35,
+    "status": "Sufficient",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  },
+  {
+    "stock_id": 8,
+    "blood_group": "O-",
+    "units": 4,
+    "status": "Critical",
+    "last_updated": "2026-11-06T14:30:00.000Z"
+  }
+]

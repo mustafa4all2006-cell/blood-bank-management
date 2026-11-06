@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musthafa Hussain - Register New Donor - Blood Bank Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🩸</div>
+        <div>
+          <div class="brand-title">Musthafa Hussain BBMS</div>
+          <div class="brand-subtitle">Blood Bank Management System</div>
+        </div>
+      </a>
+      <nav class="app-nav">
+        <a href="index.html">🏠 Dashboard</a>
+        <a href="donors.html">👥 Donors</a>
+        <a href="stock.html">🩸 Blood Stock</a>
+        <a href="requests.html">📑 Blood Requests</a>
+        <a href="insert-donor.html" class="active">➕ Add Donor</a>
+        <a href="insert-request.html">➕ New Request</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-title-box">
+      <div>
+        <h1 class="page-title">➕ Register New Blood Donor</h1>
+        <p class="page-subtitle">Record a new volunteer donor into MySQL Workbench database table <code>donors</code>.</p>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card" style="max-width: 720px; margin: 0 auto 2rem auto;">
+      <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1.5rem; color:#1e293b; border-bottom:1px solid #f1f5f9; padding-bottom:0.75rem;">
+        Donor Personal &amp; Medical Details
+      </h2>
+
+      <form id="insertDonorForm" onsubmit="event.preventDefault(); saveDonor();">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="donor_id">Donor ID <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="number" 
+              id="donor_id" 
+              class="form-control" 
+              placeholder="e.g. 109, 201" 
+              required
+            >
+            <small style="color:var(--text-muted); font-size:0.75rem;">Unique primary key identifier</small>
+          </div>
+
+          <div class="form-group">
+            <label for="donor_name">Full Name <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="text" 
+              id="donor_name" 
+              class="form-control" 
+              placeholder="e.g. Rajesh Kumar" 
+              required
+            >
+            <small style="color:var(--text-muted); font-size:0.75rem;">Official name of the donor</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="blood_group">Blood Group <span style="color:#ef4444;">*</span></label>
+            <select id="blood_group" class="form-control" required>
+              <option value="">-- Select Blood Group --</option>
+              <option value="A+">A Positive (A+)</option>
+              <option value="A-">A Negative (A-)</option>
+              <option value="B+">B Positive (B+)</option>
+              <option value="B-">B Negative (B-)</option>
+              <option value="AB+">AB Positive (AB+)</option>
+              <option value="AB-">AB Negative (AB-)</option>
+              <option value="O+">O Positive (O+)</option>
+              <option value="O-">O Negative (O-)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="age">Age (Years) <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="number" 
+              id="age" 
+              class="form-control" 
+              min="18" 
+              max="65" 
+              placeholder="18 - 65" 
+              required
+            >
+            <small style="color:var(--text-muted); font-size:0.75rem;">Standard donation age criteria</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gender">Gender <span style="color:#ef4444;">*</span></label>
+            <select id="gender" class="form-control" required>
+              <option value="">-- Select Gender --</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="contact">Contact Number <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="text" 
+              id="contact" 
+              class="form-control" 
+              placeholder="e.g. +91 98765-43210" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City / Location <span style="color:#ef4444;">*</span></label>
+            <input 
+              type="text" 
+              id="city" 
+              class="form-control" 
+              placeholder="e.g. Mumbai, Delhi, Bengaluru" 
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="last_donation_date">Last Donation Date</label>
+            <input 
+              type="date" 
+              id="last_donation_date" 
+              class="form-control"
+            >
+            <small style="color:var(--text-muted); font-size:0.75rem;">Leave empty if first-time donor</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Eligibility Status <span style="color:#ef4444;">*</span></label>
+          <select id="status" class="form-control" required>
+            <option value="Eligible" selected>Eligible (Ready to Donate)</option>
+            <option value="Recently Donated">Recently Donated (Rest Period)</option>
+            <option value="Deferred">Deferred (Temporary Medical Hold)</option>
+          </select>
+        </div>
+
+        <div class="btn-group" style="margin-top:1.5rem; justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="location.href='donors.html'">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">
+            ðŸ’¾ Save Donor to Database
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="app-footer">Musthafa Hussain &bull; Blood Bank Management System &bull; Live MySQL Workbench Sync</footer>
+
+  <div id="toast"></div>
+
+  <script src="client-api.js"></script>
+  <script>
+    async function saveDonor() {
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.innerText = 'Saving to MySQL...';
+
+      const donorData = {
+        donor_id: Number(document.getElementById('donor_id').value),
+        donor_name: document.getElementById('donor_name').value.trim(),
+        blood_group: document.getElementById('blood_group').value,
+        age: Number(document.getElementById('age').value),
+        gender: document.getElementById('gender').value,
+        contact: document.getElementById('contact').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        last_donation_date: document.getElementById('last_donation_date').value || null,
+        status: document.getElementById('status').value
+      };
+
+      const res = await BloodBankAPI.insertDonor(donorData);
+      btn.disabled = false;
+      btn.innerText = 'ðŸ’¾ Save Donor to Database';
+
+      if (res.success) {
+        showToast('âœ“ Donor registered successfully! Synced with MySQL Workbench.', 'success', () => {
+          location.href = 'donors.html';
+        });
+      } else {
+        showToast(res.message || 'Error inserting donor record', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
+
